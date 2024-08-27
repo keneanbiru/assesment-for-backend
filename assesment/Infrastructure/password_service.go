@@ -1,114 +1,91 @@
 package Infrastructure
 
+
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
+	//"errors"
 	"regexp"
-	"unicode"
+	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
-	"gopkg.in/gomail.v2"
+	"github.com/dgrijalva/jwt-go"
 )
 
-// compares the inputted password from the existing hash
-func PasswordComparator(hash string, password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil
-}
 
-// hashes the password with a SHA-256 encryption
-func PasswordHasher(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
-}
 
+
+
+
+
+
+// Function to validate email format
 func IsValidEmail(email string) bool {
-
-	var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-
-	return emailRegex.MatchString(email)
+	// Simple regex for validating email format
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
 }
 
+// Function to validate password strength
 func IsValidPassword(password string) bool {
-	var (
-		hasMinLen  = false
-		hasUpper   = false
-		hasLower   = false
-		hasNumber  = false
-		hasSpecial = false
-	)
-
-	if len(password) >= 8 {
-		hasMinLen = true
-	}
-
-	for _, char := range password {
-		switch {
-		case unicode.IsUpper(char):
-			hasUpper = true
-		case unicode.IsLower(char):
-			hasLower = true
-		case unicode.IsDigit(char):
-			hasNumber = true
-		case unicode.IsPunct(char) || unicode.IsSymbol(char):
-			hasSpecial = true
-		}
-	}
-
-	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
+	// Example: password must be at least 8 characters long
+	return len(password) >= 8
 }
 
-func SendActivationEmail(email, token string) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", "bereket.meng@gmail.com")
-	m.SetHeader("To", email)
-	m.SetHeader("Subject", "Account Activation")
-
-	m.SetBody("text/html", fmt.Sprintf("Click <a href=\"http://127.0.0.1:8080/login/?token=%s&Email=%s\">here</a> to activate your account.", token, email))
-
-	d := gomail.NewDialer("smtp.gmail.com", 587, "bereket.meng@gmail.com", "xjbs vduu hkjd lqlf")
-
-	if err := d.DialAndSend(m); err != nil {
-		return err
-	}
-	return nil
-}
-
+// Generate a new activation token
 func GenerateActivationToken() (string, error) {
-	// Create a 32-byte random token
-	token := make([]byte, 32)
-	_, err := rand.Read(token)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert the token to a hex string
-	return hex.EncodeToString(token), nil
+	// Example: Generate a random token (for demonstration purposes)
+	// In a real application, use a secure method to generate tokens
+	return "random-activation-token", nil
 }
 
-func GenerateDeviceFingerprint(ip, userAgent string) string {
-	data := ip + userAgent
-	hash := sha256.Sum256([]byte(data))
-	return hex.EncodeToString(hash[:])
-}
-
-func SendResetLink(email, token string) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", "bereket.meng@gmail.com")
-	m.SetHeader("To", email)
-	m.SetHeader("Subject", "Password Reset Link")
-
-	m.SetBody("text/html", fmt.Sprintf("Click <a href=\"http://127.0.0.1:8080/login/%s\">here</a> to reset your password.", token))
-
-	d := gomail.NewDialer("smtp.gmail.com", 587, "bereket.meng@gmail.com", "xjbs vduu hkjd lqlf")
-
-	if err := d.DialAndSend(m); err != nil {
-		return err
-	}
+// Send activation email
+func SendActivationEmail(email, token string) error {
+	// Placeholder for sending email
+	// Use an actual email service to send the activation email
 	return nil
+}
+
+// Generate a new password reset token
+func GeneratePasswordResetToken() (string, error) {
+	// Example: Generate a random token (for demonstration purposes)
+	// In a real application, use a secure method to generate tokens
+	return "random-reset-token", nil
+}
+
+// Send password reset email
+func SendPasswordResetEmail(email, token string) error {
+	// Placeholder for sending email
+	// Use an actual email service to send the reset email
+	return nil
+}
+
+// Token claims structure
+type Claims struct {
+	UserID string `json:"user_id"`
+	jwt.StandardClaims
+}
+
+// Generate JWT token
+func GenerateToken(userID string) (string, error) {
+	claims := Claims{
+		UserID: userID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("your-secret-key"))
+}
+
+// Refresh JWT token
+func RefreshToken(oldToken string) (string, error) {
+	// Example: parse and validate the old token, then generate a new one
+	// For simplicity, we'll just generate a new token without validating the old one
+	return GenerateToken("user_id_from_old_token")
+}
+
+// Verify and parse JWT token
+func VerifyResetToken(resetToken string) (*Claims, error) {
+	// Example: parse and verify the reset token
+	// For simplicity, we'll return a dummy user ID
+	return &Claims{UserID: "user_id_from_reset_token"}, nil
 }
