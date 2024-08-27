@@ -1,3 +1,5 @@
+postman link = https://group3-6966.postman.co/workspace/New-Team-Workspace~3641651c-2b3f-48fa-a55f-c2608c8610b7/collection/37367045-8d89f63a-56c3-422d-aa1e-bde60b6df4fa?action=share&creator=37367045
+
 Loan Tracker API
 Introduction
 
