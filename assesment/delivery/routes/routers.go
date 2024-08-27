@@ -1,12 +1,13 @@
 package routes
+
 import (
 	controllers "assesment/delivery/controllers"
-	infrastructure "assesment/Infrastructure"
+	infrastructure "assesment/infrastructure"
 	"github.com/gin-gonic/gin"
 )
 
 // SetupRoutes initializes and configures the routes for the application.
-func SetupRoutes(gino *gin.Engine, userCtrl *controllers.UserController) {
+func SetupRoutes(gino *gin.Engine, userCtrl *controllers.UserController, loanCtrl *controllers.LoanController) {
 
 	// Public routes
 	// Route for user registration
@@ -21,6 +22,14 @@ func SetupRoutes(gino *gin.Engine, userCtrl *controllers.UserController) {
 	gino.GET("/auth/activate/:token", userCtrl.ActivateUser)
 	// Route to refresh a user's JWT token
 	gino.POST("/auth/refresh-token", userCtrl.RefreshToken)
+
+	// Public routes for loans
+	// Route to apply for a loan
+	gino.POST("/loans", loanCtrl.ApplyForLoan)
+	// Route to get a loan by ID
+	gino.GET("/loans/:id", loanCtrl.GetLoanByID)
+	// Route to get all loans with optional filtering and sorting
+	gino.GET("/loans", loanCtrl.GetAllLoans)
 
 	// Protected routes group
 	auth := gino.Group("/")
@@ -46,6 +55,13 @@ func SetupRoutes(gino *gin.Engine, userCtrl *controllers.UserController) {
 			// Route to delete a user by ID (admin operation)
 			admin.DELETE("/admin/users/:id", userCtrl.DeleteUser)
 			
+			// Admin-specific routes for loans
+			// Route to approve a loan
+			admin.POST("/admin/loans/:id/approve", loanCtrl.ApproveLoan)
+			// Route to reject a loan
+			admin.POST("/admin/loans/:id/reject", loanCtrl.RejectLoan)
+			// Route to delete a loan
+			admin.DELETE("/admin/loans/:id", loanCtrl.DeleteLoan)
 		}
 	}
 }
