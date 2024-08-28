@@ -19,11 +19,12 @@ func main() {
 	//initialization of the repositories
 
 	user_repo := repositories.NewUserRepository(client)
-	tokenGen := infrastructure.NewTokenGenerator()
+	secretkey := "abebe"
+	tokenGen := infrastructure.NewTokenGeneratorImpl(secretkey,user_repo)
 	passwordService := infrastructure.NewPasswordService()
 
 	//set-up the controllers
-	cont := controllers.NewLoanController(usecase.NewUserUsecase(user_repo, tokenGen, passwordService))
+	cont := controllers.NewUserController(usecase.NewUserUsecase(user_repo,tokenGen,passwordService))
 
 	//the router gateway
 	router := gin.Default()
