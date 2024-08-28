@@ -1,33 +1,32 @@
 package main
 
 import (
-	infrastructure "assesment/Infrastructure"
 	"assesment/delivery/controllers"
-	routers "assesment/delivery/routes"
-	repositories "assesment/repo"
-	usecase "assesment/usecase"
-
-	//"time"
-
+	"assesment/delivery/routes"
+	infrastructure"assesment/infrastructure"
+	repositories"assesment/repo"
+	"assesment/usecase"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	client := infrastructure.MongoDBInit() // MongoDB initialization
 
-	client := infrastructure.MongoDBInit() //mongodb initialization
+	// Initialize the repositories
+	userRepo := repositories.NewUserRepository(client)
+	loanRepo := repositories.NewLoanRepository(client)
 
-	//initialization of the repositories
-
-	user_repo := repositories.NewUserRepository(client)
-	secretkey := "abebe"
-	tokenGen := infrastructure.NewTokenGeneratorImpl(secretkey,user_repo)
+	// Set up the token generator, password service, and use cases
+	secretKey := "abebe"
+	tokenGen := infrastructure.NewTokenGeneratorImpl(secretKey, userRepo)
 	passwordService := infrastructure.NewPasswordService()
 
-	//set-up the controllers
-	cont := controllers.NewUserController(usecase.NewUserUsecase(user_repo,tokenGen,passwordService))
+	// Set up the controllers
+	userCtrl := controllers.NewUserController(usecase.NewUserUsecase(userRepo, tokenGen, passwordService))
+	loanCtrl := controllers.NewLoanController(usecase.NewLoanUsecase(loanRepo))
 
-	//the router gateway
+	// Set up the router
 	router := gin.Default()
-	routers.SetupRoutes(router, cont)
+	routes.SetupRoutes(router, userCtrl, loanCtrl)
 	router.Run(":8080")
 }
